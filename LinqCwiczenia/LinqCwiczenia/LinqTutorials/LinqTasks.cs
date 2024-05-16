@@ -310,12 +310,7 @@ namespace LinqTutorials
             {
                 new { Ename = "Brak wartosci", Job = (string)null, Hiredate = (string)null }
             };
-            IEnumerable<object> result = Emps.Join(Depts, e => e.Deptno, d => d.Deptno,(((emp, dept) => new
-            {
-                name = dept.Dname,
-                numOfEmployees = Emps.Where(f=>f.Deptno == dept.Deptno).Count()
-            }))).ToList();
-            
+            IEnumerable<object> result = CustomExtensionMethods.GetEmpsWithSubordinates(Emps);
             
             return result;
         }
@@ -344,7 +339,7 @@ namespace LinqTutorials
         public static int Task13(int[] arr)
         {
             int result = 0;
-            //result=
+            result = arr.GroupBy(n => n).Where(m => m.Count() % 2 != 0).Select(m => m.Key).Single();
             return result;
         }
 
@@ -354,7 +349,17 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task14()
         {
-            IEnumerable<Dept> result = null;
+            IEnumerable<Dept> result = Depts
+                .GroupJoin(
+                    Emps,
+                    d => d.Deptno,
+                    e => e.Deptno,
+                    (dept, emp) => new
+                    {
+                        Department = dept,
+                        EmployeeCount = emp.Count()
+                    }).Where(d => d.EmployeeCount == 0 || d.EmployeeCount == 5).OrderBy(d => d.Department.Dname).Select(d => d.Department);
+            
             //result =
             return result;
         }
@@ -368,7 +373,15 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task15()
         {
-            IEnumerable<Dept> result = null;
+            var departmentEmployees = Emps.Where(e => e.Job.Contains('A')).GroupBy(e=>e.Job).
+                Where(g=>g.Count() > 2).OrderByDescending(g=>g.Count())
+                .Select(g=>new
+                {
+                    Work = g.Key,
+                    numOfEmp = g.Count()
+                });
+            IEnumerable<Dept> result = Depts.Where(d => departmentEmployees.Contains<>(d.Deptno))
+                .OrderByDescending(d => d.Deptno).ToList();
             //result =
             return result;
         }
@@ -378,7 +391,15 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task16()
         {
-            IEnumerable<Dept> result = null;
+            IEnumerable<Dept> result = Depts
+                .GroupJoin(Emps,
+                    d => d.Deptno,
+                    e => e.Deptno,
+                    (d, emps) => new Dept {
+                        Deptno = d.Deptno,
+                        Dname = d.Dname,
+                        Loc = d.Loc
+                    });
             //result =
             return result;
         }
